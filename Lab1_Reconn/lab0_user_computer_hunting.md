@@ -30,7 +30,6 @@
     - The adminCount attribute is found on user objects in Active Directory. This is a very simple attribute. If the value is \<not set\> or 0 then the user is not protected by the SD Propagation. If the value of adminCount is set to 1 that means the user has, or has been a member of a ==protected group==. The value can be seen in ADUC or ADSIEdit or LDP. Below is the attribute viewed via ADUC.
 1. Find at least a user whose password never expire
     - ldap.filter = "(useraccountcontrol:1.2.840.113556.1.4.803:=65536)"
-1. Find the users whose password has not been changed for 3 month
 
 ---
 ## SPN hunting
@@ -45,6 +44,26 @@
 1. Find the computer with uncontrained delegation 
 
 ---
+## ACL and Group Policy 
+1. Find the policy applied to your computer
+1. Enumerate all group policy
+1. Find who are applied GPO "student"
+1. Find who has the right to edit the OU "student" 1. Find who can change the password of "student0"
+    ```powershell
+    Import-Module translateAccessMask.ps1
+    $ldap.securitymasks=[system.directoryservices.securitymasks]::dacl
+    $ldap.filter = "(&(objectClass=organizationalUnit)(ou=student))"
+    $nsd = $se.findall()[0].Properties.ntsecuritydescriptor
+    $acl = new-object security.accesscontrol.rawsecuritydescriptor -argumentlist $nsd[0], 0
+    foreach($i in $acl.discretionaryacl){
+        try{echo ([String]($i.SecurityIdentifier.translate([System.Security.Principal.NTAccount]))+":"+
+        (translateAM -bit $i.AccessMask));}catch{
+
+        }
+    }
+    ```
+
+---
 ## User and Computer mapping
 1. Find all local groups of Domain controller
     - NetSMBEnumeration
@@ -52,10 +71,3 @@
 1. Find the members of local group "POC"
     - 
 1. Find all the logged User on the computer in the OU "student"
-
----
-## ACL and Group Policy 
-1. Find the policy applied to your computer
-1. Enumerate all group policy
-1. Find who are applied GPO "test"
-1. Find who has the right to edit the OU "student" 1. Find who can change the password of "student0"
