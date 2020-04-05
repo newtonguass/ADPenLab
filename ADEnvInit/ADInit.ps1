@@ -1,31 +1,60 @@
-<# Script for installing Active Directory Service and add OU and members #>
-Import-Module PSWorkflow
-Workflow run-book{
-    inlinescript{
-        $domain = "hackcollege.com"
-        $safePasswd = "Hackschool@2020"
-        Install-windowsfeature AD-domain-services -includeManagementTools
-        Import-Module ADDSDeployment
-        Install-ADDSForest -Force -DomainName $domain -SafeModeAdministratorPassword (convertto-securestring($safePasswd) -AsPlainText -Force)
-    }
-    Restart-Computer -Wait
-    inlinescript{
-        Import-Module ServerManager
-        Add-WindowsFeature RSAT-ADDS-Tools
-        <#
-        The Add-DnsServerPrimaryZone cmdlet adds a specified primary zone on a Domain Name System (DNS) server.
-        You can add an Active Directory-integrated forward lookup zone, an Active Directory-integrated reverse lookup zone, a file-backed forward lookup zone, or a file-backed reverse lookup zone. -netwrokid is to setup a reverse lookup zone
-#>
-        Add-DnsServerPrimaryZone -networkid "10.0.0.0/24" -replicationscope "Forest"
-
-        <#Add the OU and members#>
-        New-ADOrganizationalUnit -name "ITSec" -path "Dc=hackschool,DC=COM"
-        New-ADOrganizationalUnit -name "student" -path "Dc=hackschool,DC=COM"
-        foreach($i in (0..10)){
-            $name = "student" + $i
-            New-ADUser -Name $name -SamAccountName $name -UserPrincipalName ($name+"@hackschool.com") -Path "OU=student,DC=hackschool,DC=com" -AccountPassword (convertto-securestring ("hackschool@"+$i) -AsPlainText -Force) -Enabled $true
-        }
+<#configuration to be done after domain service is up#>
+$taskName = "adinit"
+$script=@"
+function addReverseDnsZone{
+    try {
+        Add-DnsServerPrimaryZone -NetworkId "10.0.0.0/24" -ReplicationScope "Forest"
+        Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Add DNS reverse zone successfully"
+    } catch {
+        add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
+        start-sleep -s 10
+        addReverseDnsZone
     }
 }
 
-run-book
+function addOu{
+    try{
+        New-ADOrganizationalUnit -name "student" -path "Dc=hackcollege,DC=tw"
+        foreach(`$i in (0..10)){
+        `$name = "student" + `$i
+        New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"`@hackcollege.tw") -Path "OU=student,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("hackcollege`@"+`$i) -AsPlainText -Force) -Enabled `$true
+        }
+    }catch {
+            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
+            start-sleep -s 10
+            addou
+        }
+}
+Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check services status Active Directory Domain Services, DFS Replication, DNS server, KDC"
+While(((Get-service | where-object{`$_.Name -EQ "NTDS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DNS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DFSR" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "kdc" } ).Status -ne "Running")  -Or ((Get-service | where-object{`$_.Name -EQ "ADWS" } ).Status -ne "Running")){Start-Sleep -s 10};
+Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check the existing of forward zone"
+
+addOu
+addReverseDnsZone
+
+Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
+"@
+
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File C:\\startscript.ps1'
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId System -LogonType ServiceAccount -RunLevel Highest
+$definition = New-ScheduledTask -Action $action -Principal $principal -Trigger $trigger -Description "run adinit to add reverse dns zone and add OU and User"
+Register-ScheduledTask -TaskName $taskName -InputObject $definition
+Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Write starup task to conduct post ADDS installation configuration"
+
+<#disable ipv6#>
+try{
+    $name = (Get-NetAdapter | select Name).Name
+    Disable-NetAdapterBinding –InterfaceAlias $name –ComponentID ms_tcpip6
+    Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Disable IPv6"
+}catch{
+
+}
+Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Begin to install ADDS including RAST tools"
+$domain = "hackcollege.tw"
+$safePasswd = "Hackcollege@2020"
+Install-windowsfeature AD-domain-services -includeManagementTools
+Import-Module ADDSDeployment
+Install-ADDSForest -Force -DomainName $domain -SafeModeAdministratorPassword (convertto-securestring($safePasswd) -AsPlainText -Force)
+Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): ADDS installation success, reboot the server"
+Restart-Computer -Force
