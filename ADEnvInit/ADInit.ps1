@@ -35,6 +35,7 @@ addReverseDnsZone
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
+Add-Content "C:\\startscript.ps1" -value $script
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File C:\\startscript.ps1'
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $principal = New-ScheduledTaskPrincipal -UserId System -LogonType ServiceAccount -RunLevel Highest
