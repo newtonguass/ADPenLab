@@ -31,7 +31,6 @@ Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check the existing o
 
 addOu
 addReverseDnsZone
-
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
