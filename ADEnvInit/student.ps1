@@ -25,4 +25,5 @@ function add-todomain{
         add-todomain
     }
 }
-
+add-todomain
+Restart-Computer -Force
