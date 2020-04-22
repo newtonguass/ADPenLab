@@ -12,8 +12,8 @@ try{
 }
 
 $domain = "hackcollege.tw"
-$username = "student"
-$password =( "Hackcollege@2020" | ConvertTo-SecureString -asPlainText -Force)
+$username = "student0"
+$password =( "Hackcollege@20200" | ConvertTo-SecureString -asPlainText -Force)
 $credential = New-Object System.Management.Automation.PSCredential $username,$password
 
 function add-todomain{

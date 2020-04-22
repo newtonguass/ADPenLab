@@ -17,7 +17,7 @@ function addOu{
         New-ADOrganizationalUnit -name "student" -path "Dc=hackcollege,DC=tw"
         foreach(`$i in (0..10)){
         `$name = "student" + `$i
-        New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"`@hackcollege.tw") -Path "OU=student,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("hackcollege`@"+`$i) -AsPlainText -Force) -Enabled `$true
+        New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"`@hackcollege.tw") -Path "OU=student,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege`@2020"+`$i) -AsPlainText -Force) -Enabled `$true
         }
     }catch {
             add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
