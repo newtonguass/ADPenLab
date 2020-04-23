@@ -21,6 +21,8 @@ while($notConnection){
             add-content "c:\\log.txt" -value "$(get-date -format 'u'): service $i not on, waitting"
             $notConnection=$true
             break
+        }else{
+            add-content "c:\\log.txt" -value "$(get-date -format 'u'): service $i is on"
         } 
     }
 }
