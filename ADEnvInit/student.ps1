@@ -14,10 +14,11 @@ try{
 
 $ports = 53, 88, 135, 389, 445
 $notConnection = $true
-while($NetConnection){
+while($notConnection){
     $notConnection= $false
     foreach($i in $ports){
         if((Test-NetConnection -ComputerName 10.0.0.4 -Port $i).TcpTestSucceeded -eq $false){
+            add-content "c:\\log.txt" -value "$(get-date -format 'u'): service $i not on, waitting"
             $notConnection=$true
             break
         } 
