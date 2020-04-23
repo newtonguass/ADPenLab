@@ -11,9 +11,22 @@ try{
     add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
 }
 
+
+$ports = 53, 88, 135, 389, 445
+$notConnection = $true
+while($NetConnection){
+    $notConnection= $false
+    foreach($i in $ports){
+        if((Test-NetConnection -ComputerName 10.0.0.4 -Port $i).TcpTestSucceeded -eq $false){
+            $notConnection=$true
+            break
+        } 
+    }
+}
+
 $domain = "hackcollege.tw"
-$username = "student0"
-$password =( "Hackcollege@20200" | ConvertTo-SecureString -asPlainText -Force)
+$username = "student"
+$password =( "Hackcollege@2020" | ConvertTo-SecureString -asPlainText -Force)
 $credential = New-Object System.Management.Automation.PSCredential $username,$password
 
 function add-todomain{
