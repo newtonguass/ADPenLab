@@ -13,6 +13,7 @@ This repository ami to provide a quick setup for simple AD penetration environme
         - Exploiting group policy vulnerability
         - Hidden account
       - CredentialDumping & Lateral Movement
+        - Responder
         - Handcraft of simple Mimikatz
         - Kerberoasting
       - Persistence
