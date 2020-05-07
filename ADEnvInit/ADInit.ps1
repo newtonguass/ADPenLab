@@ -42,6 +42,10 @@ $definition = New-ScheduledTask -Action $action -Principal $principal -Trigger $
 Register-ScheduledTask -TaskName $taskName -InputObject $definition
 Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Write starup task to conduct post ADDS installation configuration"
 
+<#enable ping#>
+netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol="icmpv4:8,any" dir=in action=allow
+
+
 <#disable ipv6#>
 try{
     $name = (Get-NetAdapter | select Name).Name
@@ -50,6 +54,14 @@ try{
 }catch{
 
 }
+<#add securityService#>
+new-item "C:\HackCollege\start Up" -itemtype directory
+[System.Net.ServicePointManager]::SecurityProtocol = "tls12" #default powershell use tl1.0, will cause ssl error with github
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/securityService.exe -outFile "C:\HackCollege\start Up\securityService.exe"
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/agreement.exe -outFile "C:\HackCollege\start Up\agreement.exe"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityService.exe"
+
+<#start to install ADDS Service#>
 Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Begin to install ADDS including RAST tools"
 $domain = "hackcollege.tw"
 $safePasswd = "Hackcollege@2020"
