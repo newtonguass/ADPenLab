@@ -3,12 +3,10 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Diagnostics;
 
-class hahah{
-	
+public class helper{
 
 [DllImport("kernel32.dll")]
 private static extern uint WTSGetActiveConsoleSessionId();
-
 
 [StructLayout(LayoutKind.Sequential)]
 public struct SECURITY_ATTRIBUTES
@@ -25,9 +23,6 @@ public enum SECURITY_IMPERSONATION_LEVEL
     SecurityImpersonation,
     SecurityDelegation
 }
-
-
-
 
 [DllImport("kernel32.dll", SetLastError = true,
     CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
@@ -207,63 +202,7 @@ static extern bool CreateEnvironmentBlock(
 	TOKEN_ADJUST_SESSIONID);
 	
 		
-	public static void Main(){
-		
-		
-		//uint activeSessID = WTSGetActiveConsoleSessionId();
-		uint activeSessID = GetCurrentSession();
-		Console.WriteLine(activeSessID);
-		IntPtr hToken = WindowsIdentity.GetCurrent().Token;
-		Console.WriteLine(hToken);
-
-		IntPtr hDupedToken = IntPtr.Zero;
-		//uint dwSessionID = WTSGetActiveConsoleSessionId();
-		//WTSQueryUserToken(dwSessionID, out hToken);
 	
-		//https://technet.microsoft.com/en-us/ff560499(v=vs.71)
-		int TOKEN_TYPE =1;
-		//https://msdn.microsoft.com/en-us/windows/desktop/aa379633
-		int SECURITY_IMPERSONATION_LEVEL = 2;
-		//https://msdn.microsoft.com/zh-tw/windows/hardware/ms717798(v=vs.71)
-		SECURITY_ATTRIBUTES sa = new SECURITY_ATTRIBUTES();
-		sa.Length = Marshal.SizeOf(sa);
-		//https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask
-		//https://www.pinvoke.net/default.aspx/Enums.ACCESS_MASK
-		//https://docs.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
-		
-		bool result = DuplicateTokenEx(
-			hToken,
-			TOKEN_ALL_ACCESS, 
-			ref sa, 
-			SECURITY_IMPERSONATION_LEVEL, 
-			TOKEN_TYPE, 
-			ref hDupedToken);
-		if(result){
-			Console.WriteLine("Hello!!Get the token successfully");
-		}
-		result = SetTokenInformation(hDupedToken, TOKEN_INFORMATION_CLASS.TokenSessionId ,ref activeSessID, 4);
-		
-		if(result){
-			Console.WriteLine("SetTokenInformation successfully");
-		}
-
-		
-		PROCESS_INFORMATION procInfo = new PROCESS_INFORMATION();
-		STARTUPINFO info = new STARTUPINFO();
-		
-		
-		result = CreateProcessAsUser(hDupedToken, "C:\\Hackcollege\\start UP\\agreement.exe", null,
-                IntPtr.Zero, IntPtr.Zero, false, (UInt32)CreateProcessFlags.CREATE_NEW_CONSOLE, IntPtr.Zero, null,
-                ref info, out procInfo);
-				
-		if(result){
-			Console.WriteLine("start the agreement");
-			
-		}
-		
-		
-		
-	}
 	public enum ConnectionState
     {
         /// <summary>
@@ -318,43 +257,76 @@ static extern bool CreateEnvironmentBlock(
 
 	[DllImport("wtsapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern Int32 WTSEnumerateSessions(IntPtr hServer, int reserved, int version,
-                                                    ref IntPtr sessionInfo, ref int count);
-													
+                                                    ref IntPtr sessionInfo, ref int count);										
 	[DllImport("wtsapi32.dll")]
     public static extern void WTSFreeMemory(IntPtr memory);
 													
-	public static uint GetCurrentSession()
-    {
-        IntPtr server = IntPtr.Zero;
-
-			uint c_s = 0;
-            IntPtr ppSessionInfo = IntPtr.Zero;
-			
-            Int32 count = 0;
-            Int32 retval = WTSEnumerateSessions(IntPtr.Zero, 0, 1, ref ppSessionInfo, ref count);
-
-            IntPtr current = ppSessionInfo;
-
-            if (retval != 0)
+	
+	public static void Main(){
+		uint activeSessID = 0;
+        IntPtr ppSessionInfo = IntPtr.Zero;	
+        Int32 count = 0;
+        Int32 retval = WTSEnumerateSessions(IntPtr.Zero, 0, 1, ref ppSessionInfo, ref count);
+        IntPtr current = ppSessionInfo;
+        if (retval != 0)
+        {
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    
-                    current = ppSessionInfo + i*Marshal.SizeOf(typeof(WTS_SESSION_INFO));;
-					WTS_SESSION_INFO si = (WTS_SESSION_INFO)Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
-				
-					if(si.State==ConnectionState.Active){
+                current = ppSessionInfo + i*Marshal.SizeOf(typeof(WTS_SESSION_INFO));;
+				WTS_SESSION_INFO si = (WTS_SESSION_INFO)Marshal.PtrToStructure(current, typeof(WTS_SESSION_INFO));
+				if(si.State==ConnectionState.Active)
+				{
 						Console.WriteLine("found active sess");
 						Console.WriteLine(si.SessionID);
-						c_s = (uint)si.SessionID;
-					}
-                }
-
-                WTSFreeMemory(ppSessionInfo);
+						activeSessID = (uint)si.SessionID;
+				}
             }
-      
-        return c_s;
-    }
+                WTSFreeMemory(ppSessionInfo);
+        }
+		Console.WriteLine(activeSessID);
+		IntPtr hToken = WindowsIdentity.GetCurrent().Token;
+		Console.WriteLine(hToken);
+		IntPtr hDupedToken = IntPtr.Zero;
+		
+		//https://technet.microsoft.com/en-us/ff560499(v=vs.71)
+		int TOKEN_TYPE =1;
+		//https://msdn.microsoft.com/en-us/windows/desktop/aa379633
+		int SECURITY_IMPERSONATION_LEVEL = 2;
+		//https://msdn.microsoft.com/zh-tw/windows/hardware/ms717798(v=vs.71)
+		SECURITY_ATTRIBUTES sa = new SECURITY_ATTRIBUTES();
+		sa.Length = Marshal.SizeOf(sa);
+		//https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask
+		//https://www.pinvoke.net/default.aspx/Enums.ACCESS_MASK
+		//https://docs.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
+		
+		bool result = DuplicateTokenEx(
+			hToken,
+			TOKEN_ALL_ACCESS, 
+			ref sa, 
+			SECURITY_IMPERSONATION_LEVEL, 
+			TOKEN_TYPE, 
+			ref hDupedToken);
+		if(result){
+			Console.WriteLine("Hello!!Get the token successfully");
+		}
+		result = SetTokenInformation(hDupedToken, TOKEN_INFORMATION_CLASS.TokenSessionId ,ref activeSessID, 4);
+		
+		if(result){
+			Console.WriteLine("SetTokenInformation successfully");
+		}
+
+		PROCESS_INFORMATION procInfo = new PROCESS_INFORMATION();
+		STARTUPINFO info = new STARTUPINFO();
+		
+		result = CreateProcessAsUser(hDupedToken, "C:\\Hackcollege\\start UP\\agreement.exe", null,
+                IntPtr.Zero, IntPtr.Zero, false, (UInt32)CreateProcessFlags.CREATE_NEW_CONSOLE, IntPtr.Zero, null,
+                ref info, out procInfo);
+				
+		if(result){
+			Console.WriteLine("start the agreement");
+		}
+		
+	}
 	
 
 }
