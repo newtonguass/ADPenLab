@@ -29,6 +29,10 @@ Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check services statu
 While(((Get-service | where-object{`$_.Name -EQ "NTDS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DNS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DFSR" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "kdc" } ).Status -ne "Running")  -Or ((Get-service | where-object{`$_.Name -EQ "ADWS" } ).Status -ne "Running")){Start-Sleep -s 10};
 Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check the existing of forward zone"
 
+Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Add FilePermission GPO"
+Expand-Archive C:\\HackCollege\\FilePermission.zip -DestinationPath C:\\HackCollege
+import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
+new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
 addOu
 addReverseDnsZone
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
@@ -60,6 +64,7 @@ new-item "C:\HackCollege\start Up" -itemtype directory
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/securityService.exe -outFile "C:\HackCollege\start Up\securityService.exe"
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/agreement.exe -outFile "C:\HackCollege\start Up\agreement.exe"
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/helper.exe -outFile "C:\HackCollege\start Up\helper.exe"
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/gpo/FilePermission.zip -outFile "C:\HackCollege\FilePermission.zip"
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityService.exe"
 
 <#start to install ADDS Service#>
