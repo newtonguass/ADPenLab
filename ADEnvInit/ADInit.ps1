@@ -31,10 +31,10 @@ Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check the existing o
 
 Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Add FilePermission GPO"
 Expand-Archive C:\\HackCollege\\FilePermission.zip -DestinationPath C:\\HackCollege
-import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
-new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
 addOu
 addReverseDnsZone
+import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
+new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
