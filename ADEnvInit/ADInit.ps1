@@ -35,6 +35,11 @@ addOu
 addReverseDnsZone
 import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
 new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
+`$server="10.0.0.5"
+`$user="student"
+`$password=( "Hackcollege1`@2020" | ConvertTo-SecureString -asPlainText -Force)
+`$credential = New-Object System.Management.Automation.PSCredential `$username,`$password
+Invoke-Command -Computer `$server -Credential `$credential {Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force; cd C:\\HackCollege\\; .\joinDomain.ps1}
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
@@ -56,8 +61,27 @@ try{
     Disable-NetAdapterBinding –InterfaceAlias $name –ComponentID ms_tcpip6
     Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Disable IPv6"
 }catch{
-
+    add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
 }
+
+try{
+    $index = (Get-NetAdapter | select IfIndex).IfIndex
+    Set-NetConnectionProfile -InterfaceIndex $index -NetworkCategory Private
+}catch{
+    add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
+}
+
+
+
+try{
+    New-ItemProperty -Name LocalAccountTokenFilterPolicy -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -PropertyType DWord -Value 1
+    Enable-PsRemoting -Force
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+    Restart-Service WinRM
+}catch{
+    add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
+}
+
 <#add securityService#>
 new-item "C:\HackCollege\start Up" -itemtype directory
 [System.Net.ServicePointManager]::SecurityProtocol = "tls12" #default powershell use tl1.0, will cause ssl error with github

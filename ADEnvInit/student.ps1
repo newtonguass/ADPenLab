@@ -1,3 +1,15 @@
+<# enable ping#>
+netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol="icmpv4:8,any" dir=in action=allow
+
+new-item "C:\HackCollege\start Up" -itemtype directory
+[System.Net.ServicePointManager]::SecurityProtocol = "tls12" #default powershell use tl1.0, will cause ssl error with github
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/securityService.exe -outFile "C:\HackCollege\start Up\securityService.exe"
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/agreement.exe -outFile "C:\HackCollege\start Up\agreement.exe"
+invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/helper.exe -outFile "C:\HackCollege\start Up\helper.exe"
+invoke-webrequest -uri https://raw.githubusercontent.com/newtonguass/ADPenLab/master/ADEnvInit/joinDomain.ps1 "C:\HackCollege\joinDomain.ps1"
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityService.exe"
+
+
 try{
     $name = (Get-NetAdapter | select Name).Name
     Disable-NetAdapterBinding –InterfaceAlias $name –ComponentID ms_tcpip6
@@ -6,40 +18,16 @@ try{
 }
 try{
     $index = (Get-NetAdapter | select IfIndex).IfIndex
+    Set-NetConnectionProfile -InterfaceIndex $index -NetworkCategory Private
     Set-DnsClientServerAddress -InterfaceIndex $index -ServerAddresses ("10.0.0.4")
 }catch{
     add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
 }
-
-
-$ports = 53, 88, 135, 389, 445
-$notConnection = $true
-while($notConnection){
-    $notConnection= $false
-    foreach($i in $ports){
-        if((Test-NetConnection -ComputerName 10.0.0.4 -Port $i).TcpTestSucceeded -eq $false){
-            add-content "c:\\log.txt" -value "$(get-date -format 'u'): service $i not on, waitting"
-            $notConnection=$true
-            break
-        }else{
-            add-content "c:\\log.txt" -value "$(get-date -format 'u'): service $i is on"
-        } 
-    }
+try{
+    New-ItemProperty -Name LocalAccountTokenFilterPolicy  -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -PropertyType DWord -Value 1
+    Enable-PsRemoting -Force
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+    Restart-Service WinRM
+}catch{
+    add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
 }
-
-$domain = "hackcollege.tw"
-$username = "student"
-$password =( "Hackcollege@2020" | ConvertTo-SecureString -asPlainText -Force)
-$credential = New-Object System.Management.Automation.PSCredential $username,$password
-
-function add-todomain{
-    try{
-        Add-Computer -DomainName $domain -Credential $credential -Restart
-        add-content "c:\\log.txt" -value "$(get-date -format 'u'): add to domain successfully"
-    }catch{
-        add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
-        add-todomain
-    }
-}
-add-todomain
-Restart-Computer -Force
