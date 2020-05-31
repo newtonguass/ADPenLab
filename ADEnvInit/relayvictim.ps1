@@ -1,5 +1,4 @@
 new-item "C:\HackCollege\start Up" -itemtype directory
-[System.Net.ServicePointManager]::SecurityProtocol = "tls12" #default powershell use tl1.0, will cause ssl error with github
 
 Install-WindowsFeature -name Web-Server -IncludeManagementTools
 Install-WindowsFeature Web-Asp-Net45
@@ -8,7 +7,6 @@ $out=C:\\HackCollege\\runIISAsLocalSystem.bat
 add-content "c:\\log.txt" -value "$(get-date -format 'u'): $out"
 
 
-new-item "C:\HackCollege\start Up" -itemtype directory
 [System.Net.ServicePointManager]::SecurityProtocol = "tls12" #default powershell use tl1.0, will cause ssl error with github
 invoke-webrequest -uri https://raw.githubusercontent.com/newtonguass/ADPenLab/master/ADEnvInit/joinDomain.ps1 -outFile "C:\HackCollege\joinDomain.ps1"
 invoke-webrequest -uri https://raw.githubusercontent.com/newtonguass/ADPenLab/master/ADEnvInit/webServer/fileupload.aspx -outFile "C:\inetpub\wwwroot\upload.aspx"
