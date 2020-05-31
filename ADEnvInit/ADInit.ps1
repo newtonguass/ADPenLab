@@ -37,8 +37,8 @@ import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermis
 new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
 `$server="10.0.0.5"
 `$user="student"
-`$password=( "Hackcollege1`@2020" | ConvertTo-SecureString -asPlainText -Force)
-`$credential = New-Object System.Management.Automation.PSCredential `$username,`$password
+`$password=( "Hackcollege`@2020" | ConvertTo-SecureString -asPlainText -Force)
+`$credential = New-Object System.Management.Automation.PSCredential `$user,`$password
 Invoke-Command -Computer `$server -Credential `$credential {Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force; cd C:\\HackCollege\\; .\joinDomain.ps1}
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
