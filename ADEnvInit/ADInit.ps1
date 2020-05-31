@@ -35,11 +35,14 @@ addOu
 addReverseDnsZone
 import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
 new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
-`$server="10.0.0.5"
+`$server1="10.0.0.5"
+`$server2="10.0.0.6"
 `$user="student"
 `$password=( "Hackcollege`@2020" | ConvertTo-SecureString -asPlainText -Force)
 `$credential = New-Object System.Management.Automation.PSCredential `$user,`$password
-Invoke-Command -Computer `$server -Credential `$credential {Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force; cd C:\\HackCollege\\; .\joinDomain.ps1}
+Invoke-Command -Computer `$server1 -Credential `$credential {Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force; cd C:\\HackCollege\\; .\joinDomain.ps1}
+Invoke-Command -Computer `$server2 -Credential `$credential {Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force; cd C:\\HackCollege\\; .\joinDomain.ps1}
+Add-ADGroupMember -Identity Administrators -Members "RELAYVICTIM$"
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
@@ -58,7 +61,7 @@ netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" p
 <#disable ipv6#>
 try{
     $name = (Get-NetAdapter | select Name).Name
-    Disable-NetAdapterBinding –InterfaceAlias $name –ComponentID ms_tcpip6
+    Disable-NetAdapterBinding –InterfaceAlias $name –ComponentID "ms_tcpip6"
     Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Disable IPv6"
 }catch{
     add-content "c:\\log.txt" -value "$(get-date -format 'u'): $_.exception.message"
