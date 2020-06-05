@@ -9,4 +9,5 @@
     - Get a local system account from previous step
     - Manipulate SAM in registry
     - can’t see in net user or account management gui
+
 ![you can't see me](./ycm.jpg)
