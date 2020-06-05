@@ -14,33 +14,46 @@ function addReverseDnsZone{
 
 function addOu{
     try{
-            `$ou = "IT", "RD", "Sales", "Accounting", "Legal", "student"
-            foreach(`$i in `$ou){
-                New-ADOrganizationalUnit -name `$i -path "Dc=hackcollege,DC=tw"
-                New-ADGroup -Name `$i -SamAccountName `$i -GroupCategory Security -GroupScope Global -Path "CN=Users,DC=hackcollege,DC=tw"
-                foreach(`$j in (0..10)){
+        `$ou = "IT", "RD", "Sales", "Accounting", "Legal", "student"
+        foreach(`$i in `$ou){
+            New-ADOrganizationalUnit -name (`$i+"ou") -path "Dc=hackcollege,DC=tw"
+            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add ou `$i"
+            New-ADGroup -Name (`$i+"group") -SamAccountName (`$i+"group") -GroupCategory Security -GroupScope Global -Path "CN=Users,DC=hackcollege,DC=tw"
+            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add group `$i"
+            foreach(`$j in (0..10)){
                 `$name = `$i + `$j
-                New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"@hackcollege.tw") -Path "OU=`$i,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege@2020"+`$j) -AsPlainText -Force) -Enabled `$true
-                Add-ADGroupMember -Identity `$i -Members `$name
-                }
+                New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"@hackcollege.tw") -Path "OU=(`$i+"ou"),DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege@2020"+`$j) -AsPlainText -Force) -Enabled `$true
+                add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add user `$name"
+                Add-ADGroupMember -Identity (`$i+"group") -Members `$name
+                add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add user `$name to group `$i"
             }
-            Set-ADUser -Identity IT5 -PasswordNeverExpires `$true
-            New-ADComputer -Name "adsmsSQLAP01" -SamAccountName "adsmsSQLAP01" -ServicePrincipalNames "MSSQLSvc/adsmsSQLAP01.hackcolleg.tw:1433" -TrustedForDelegation `$true
-            Add-ADGroupMember -Identity "Domain Admins" -Members IT0, IT1
+        }
+        Set-ADUser -Identity IT5 -PasswordNeverExpires `$true
+        add-content "c:\\log.txt" -value "`$(get-date -format 'u'): set it05 passwd never expire"
+        New-ADComputer -Name "adsmsSQLAP01" -SamAccountName "adsmsSQLAP01" -ServicePrincipalNames "MSSQLSvc/adsmsSQLAP01.hackcolleg.tw:1433" -TrustedForDelegation `$true
+        add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add spn"
+        Add-ADGroupMember -Identity "Domain Admins" -Members IT0, IT1
+        add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add domain admin it0 it1"
     }catch {
-            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
-            start-sleep -s 10
-            addou
+        add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
+        start-sleep -s 10
+        addou
         }
 }
-Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check services status Active Directory Domain Services, DFS Replication, DNS server, KDC"
-While(((Get-service | where-object{`$_.Name -EQ "NTDS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DNS" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "DFSR" } ).Status -ne "Running") -Or ((Get-service | where-object{`$_.Name -EQ "kdc" } ).Status -ne "Running")  -Or ((Get-service | where-object{`$_.Name -EQ "ADWS" } ).Status -ne "Running")){Start-Sleep -s 10};
-Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check the existing of forward zone"
 
-Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Add FilePermission GPO"
-Expand-Archive C:\\HackCollege\\FilePermission.zip -DestinationPath C:\\HackCollege
+Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Check services status Active Directory Domain Services, DFS Replication, DNS server, KDC"
+
+While((Get-service | where-object{`$_.Name -EQ "kdc" } ).Status -ne "Running"){Start-Sleep -s 10};
+While((Get-service | where-object{`$_.Name -EQ "ntds" } ).Status -ne "Running"){Start-Sleep -s 10};
+While((Get-service | where-object{`$_.Name -EQ "samss" } ).Status -ne "Running"){Start-Sleep -s 10};
+While((Get-service | where-object{`$_.Name -EQ "dns" } ).Status -ne "Running"){Start-Sleep -s 10};
+While((Get-service | where-object{`$_.Name -EQ "dfsr" } ).Status -ne "Running"){Start-Sleep -s 10};
+While((Get-service | where-object{`$_.Name -EQ "adws" } ).Status -ne "Running"){Start-Sleep -s 10};
+
+
 addOu
 addReverseDnsZone
+Add-Content "C:\\log.txt" -value "`$(get-date -format 'u'): Add FilePermission GPO"
 import-gpo -BackupId D23D46C8-D2AB-4A5C-91B6-F26F2D0997F7 -TargetName FilePermission -Path C:\\HackCollege\\ -CreateIfNeeded
 new-gplink -Name "FilePermission" -Target "dc=hackcollege,dc=tw"
 `$server1="10.0.0.5"
@@ -105,6 +118,7 @@ invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvI
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/helper.exe -outFile "C:\HackCollege\start Up\helper.exe"
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/gpo/FilePermission.zip -outFile "C:\HackCollege\FilePermission.zip"
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityService.exe"
+Expand-Archive C:\\HackCollege\\FilePermission.zip -DestinationPath C:\\HackCollege
 
 <#start to install ADDS Service#>
 Add-Content "C:\\log.txt" -value "$(get-date -format 'u'): Begin to install ADDS including RAST tools"
