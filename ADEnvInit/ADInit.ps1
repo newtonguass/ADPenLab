@@ -14,11 +14,19 @@ function addReverseDnsZone{
 
 function addOu{
     try{
-        New-ADOrganizationalUnit -name "student" -path "Dc=hackcollege,DC=tw"
-        foreach(`$i in (0..10)){
-        `$name = "student" + `$i
-        New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"`@hackcollege.tw") -Path "OU=student,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege`@2020"+`$i) -AsPlainText -Force) -Enabled `$true
-        }
+            `$ou = "IT", "RD", "Sales", "Accounting", "Legal", "student"
+            foreach(`$i in `$ou){
+                New-ADOrganizationalUnit -name `$i -path "Dc=hackcollege,DC=tw"
+                New-ADGroup -Name `$i -SamAccountName `$i -GroupCategory Security -GroupScope Global -Path "CN=Users,DC=hackcollege,DC=tw"
+                foreach(`$j in (0..10)){
+                `$name = `$i + `$j
+                New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"@hackcollege.tw") -Path "OU=`$i,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege@2020"+`$j) -AsPlainText -Force) -Enabled `$true
+                Add-ADGroupMember -Identity `$i -Members `$name
+                }
+            }
+            Set-ADUser -Identity IT5 -PasswordNeverExpires `$true
+            New-ADComputer -Name "adsmsSQLAP01" -SamAccountName "adsmsSQLAP01" -ServicePrincipalNames "MSSQLSvc/adsmsSQLAP01.hackcolleg.tw:1433" -TrustedForDelegation `$true
+            Add-ADGroupMember -Identity "Domain Admins" -Members IT0, IT1
     }catch {
             add-content "c:\\log.txt" -value "`$(get-date -format 'u'): `$_.exception.message"
             start-sleep -s 10
@@ -45,6 +53,10 @@ Invoke-Command -Computer `$server2 -Credential `$credential {Set-ExecutionPolicy
 Add-ADGroupMember -Identity Administrators -Members "RELAYVICTIM$"
 Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
+
+net localgroup poc /add
+net user hacker Hackercollege@2020 /add
+net localgroup poc /hacker /add
 
 Add-Content "C:\\startscript.ps1" -value $script
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File C:\\startscript.ps1'
