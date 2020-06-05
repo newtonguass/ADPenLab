@@ -8,7 +8,9 @@ invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvI
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/agreement.exe -outFile "C:\HackCollege\start Up\agreement.exe"
 invoke-webrequest -uri https://github.com/newtonguass/ADPenLab/raw/master/ADEnvInit/serviceSetUp/helper.exe -outFile "C:\HackCollege\start Up\helper.exe"
 invoke-webrequest -uri https://raw.githubusercontent.com/newtonguass/ADPenLab/master/ADEnvInit/joinDomain.ps1 -outFile "C:\HackCollege\joinDomain.ps1"
+start-sleep -s 10
 C:\Window$\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityService.exe"
+start-sleep -s 10
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe "C:\HackCollege\start Up\securityServiceManagement.exe"
 // Deleberately make the service path vulnerability
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\securityService" -Name ImagePath "C:\HackCollege\start Up\securityService.exe"

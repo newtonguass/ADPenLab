@@ -34,8 +34,6 @@ class Packet:
 
 
 class customHandler(socketserver.BaseRequestHandler):
-
-
     def handle(self):
         print("receive UDP nbns packedt from ", self.client_address[0])
         data = self.request[0].strip()
@@ -46,6 +44,7 @@ class customHandler(socketserver.BaseRequestHandler):
         packet = Packet(ip, data)
         print(data[12:46])
         socket.sendto(packet.return_bytes(), self.client_address)
+
 if __name__ == "__main__":
     import sys
     parser = ArgumentParser()
