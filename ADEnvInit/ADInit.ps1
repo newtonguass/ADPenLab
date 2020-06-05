@@ -16,16 +16,18 @@ function addOu{
     try{
         `$ou = "IT", "RD", "Sales", "Accounting", "Legal", "student"
         foreach(`$i in `$ou){
-            New-ADOrganizationalUnit -name (`$i+"ou") -path "Dc=hackcollege,DC=tw"
-            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add ou `$i"
-            New-ADGroup -Name (`$i+"group") -SamAccountName (`$i+"group") -GroupCategory Security -GroupScope Global -Path "CN=Users,DC=hackcollege,DC=tw"
-            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add group `$i"
+            `$tempou = `$i+"ou"
+            `$tempgroup = `$i+"group"
+            New-ADOrganizationalUnit -name `$tempou -path "Dc=hackcollege,DC=tw"
+            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add ou `$tempou"
+            New-ADGroup -Name `$tempgroup  -SamAccountName `$tempgroup -GroupCategory Security -GroupScope Global -Path "CN=Users,DC=hackcollege,DC=tw"
+            add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add group `$tempgroup"
             foreach(`$j in (0..10)){
                 `$name = `$i + `$j
-                New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"@hackcollege.tw") -Path "OU=(`$i+"ou"),DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege@2020"+`$j) -AsPlainText -Force) -Enabled `$true
+                New-ADUser -Name `$name -SamAccountName `$name -UserPrincipalName (`$name+"@hackcollege.tw") -Path "OU=`$tempou,DC=hackcollege,DC=tw" -AccountPassword (convertto-securestring ("Hackcollege@2020"+`$j) -AsPlainText -Force) -Enabled `$true
                 add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add user `$name"
-                Add-ADGroupMember -Identity (`$i+"group") -Members `$name
-                add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add user `$name to group `$i"
+                Add-ADGroupMember -Identity `$tempgroup -Members `$name
+                add-content "c:\\log.txt" -value "`$(get-date -format 'u'): add user `$name to group `$tempgroup"
             }
         }
         Set-ADUser -Identity IT5 -PasswordNeverExpires `$true

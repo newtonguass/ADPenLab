@@ -1,2 +1,0 @@
-# Lab 2_1 find the unquoated service
-- get-wmiobject win32_service | ?{$_.pathname -match <mark>"^`"{0,1}(C|c):*\\.*\s+.*\\.*"</mark>} | select Name, Pathname, State, ProcessID

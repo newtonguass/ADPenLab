@@ -1,7 +1,0 @@
-# Hidden account
-1. Export sam(name and user) and replace the f value wiht admin’s 
-1. Delete test$ account
-1. Import sam and user reg
-1. Using PSexec to get system cmd
-1. psexec -u hidden$ -p **** cmd
-1. psexec -i-s cmd
