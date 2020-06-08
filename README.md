@@ -37,6 +37,7 @@ This repository ami to provide a quick setup for simple AD penetration environme
         - Very vulnerable web service for SSRF
         - High privileged computer account for realy practice(by using the cve2018-8581)
 - Since default network security group does not allow inbound connection from internet and there are no public IP in those VMs, you need to use bastion server to connect VMs. if you want to RDP directly, you need to add public IP and change the network security group.
+- If you not use the default user name and password, the computer will not join the domain automatically. You need to join the domain on your own.
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fnewtonguass%2FADPenLab%2Fmaster%2FADEnvInit%2FAzureDeployment%2FADPenTestEnvDeploy.json" rel="nofollow">
 <img src="https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.png" style="max-width:100%;">
@@ -47,7 +48,3 @@ This repository ami to provide a quick setup for simple AD penetration environme
 </a>
 
 
----
-### Tips
-1. Change the VMs to what you want in the Azure deployment page.
-1. Customize parameters in azuredeploy.parameters as you see appropriate. 
