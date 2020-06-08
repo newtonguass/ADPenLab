@@ -19,14 +19,23 @@ This repository ami to provide a quick setup for simple AD penetration environme
       - Persistence
         - NTLM Relay
         - DC sync
-      - Defense&Detection
-        - How to mitigate Mimikatz
 <img width="650" src="https://cloudblogs.microsoft.com/uploads/prod/2016/11/Attack-Kill-Chain-1024x542-1024x542.jpg">
 
 ---
 ## AD Pen test environment quick setup in Azure
 
-- This template creates two VM in Azure. One is domain controller and the other one is computer that is for join domain.
+- This template creates three VM in Azure.
+    1. Domain Controller  
+        - Win Server 2016
+        - With some example OU and one unconstrained delegation account
+        - Enable customized GPO
+    1. client 
+        - Win 10
+        - With vulnerable service for privilege ecalation practice
+    1. Relay Victim 
+        - Win Server 2016
+        - Very vulnerable web service for SSRF
+        - High privileged computer account for realy practice(by using the cve2018-8581)
 - Since default network security group does not allow inbound connection from internet and there are no public IP in those VMs, you need to use bastion server to connect VMs. if you want to RDP directly, you need to add public IP and change the network security group.
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fnewtonguass%2FADPenLab%2Fmaster%2FADEnvInit%2FAzureDeployment%2FADPenTestEnvDeploy.json" rel="nofollow">
