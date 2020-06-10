@@ -24,7 +24,7 @@ This repository ami to provide a quick setup for simple AD penetration environme
 ---
 ## AD Pen test environment quick setup in Azure
 
-- This template creates three VM in Azure.
+- This template creates three VM in Azure
     1. Domain Controller  
         - Win Server 2016
         - With some example OU and one unconstrained delegation account
@@ -36,6 +36,7 @@ This repository ami to provide a quick setup for simple AD penetration environme
         - Win Server 2016
         - Very vulnerable web service for SSRF
         - High privileged computer account for realy practice(by using the cve2018-8581)
+- Carefully select the VM size, because the quota for Azure free account is limited to 4 cores.
 - Since default network security group does not allow inbound connection from internet and there are no public IP in those VMs, you need to use bastion server to connect VMs. if you want to RDP directly, you need to add public IP and change the network security group.
 - If you not use the default user name and password, the computer will not join the domain automatically. You need to join the domain on your own.
 
